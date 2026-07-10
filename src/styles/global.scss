@@ -1,0 +1,153 @@
+/* ========================================
+   COSPLAN - Deep Professional Dark Theme
+   ======================================== */
+
+page, view, text, image, input, button, scroll-view, navigator, picker, swiper, swiper-item, form, label {
+  box-sizing: border-box;
+}
+
+page {
+  overflow-x: hidden;
+
+  /* ---- Base Colors ---- */
+  --c-bg: #1B1725;
+  --c-bg-sub: #1A1D24;
+  --c-card-bg: rgba(255,255,255,0.05);
+
+  /* ---- Accent ---- */
+  --c-accent: #b44dff;
+  --c-cyan: #00e5ff;
+
+  /* ---- Morandi Category Colors ---- */
+  --c-tailor: #7B9EBD;     /* 雾霾蓝 - 服装相关 */
+  --c-prop: #C4A87C;       /* 砂石黄 - 道具相关 */
+  --c-shoot: #8CAF9E;      /* 豆沙绿 - 拍摄相关 */
+  --c-makeup: #C49B9B;     /* 烟粉 - 化妆相关 */
+  --c-wig: #9B8EC4;        /* 淡紫 - 假发相关 */
+  --c-logistics: #8E9E9E;  /* 灰青 - 杂项 */
+
+  /* ---- Temperament Colors ---- */
+  --c-cute: #C49B9B;      /* 烟粉 - 可爱 */
+  --c-cool: #7B9EBD;      /* 雾霾蓝 - 酷飒 */
+  --c-gentle: #C4A87C;    /* 暖砂 - 温柔 */
+  --c-cold: #9B8EC4;      /* 淡紫 - 高冷 */
+
+  /* ---- Text ---- */
+  --c-white: #fff;
+  --c-text: rgba(255,255,255,0.95);
+  --c-body: rgba(255,255,255,0.8);
+  --c-aux: rgba(255,255,255,0.45);
+  --c-dim: rgba(255,255,255,0.25);
+
+  /* ---- Glass Card ---- */
+  --c-card-border: rgba(255,255,255,0.08);
+  --r-card: 24rpx;
+
+  /* ---- Font Sizes ---- */
+  --fs-title: 38rpx;
+  --fs-body: 28rpx;
+  --fs-aux: 24rpx;
+  --fs-xs: 20rpx;
+
+  /* ---- Layout ---- */
+  --sp-page: 30rpx;
+  --r-btn: 50rpx;
+}
+
+/* ========================================
+   Shared Animations
+   ======================================== */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOutRight {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(60px) scale(0.95); }
+}
+
+@keyframes breatheGlow {
+  0%, 100% { box-shadow: 0 0 12rpx rgba(180,77,255,0.3); }
+  50%      { box-shadow: 0 0 40rpx rgba(180,77,255,0.6); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes floatUp {
+  0%   { bottom: -10px; opacity: 0; }
+  15%  { opacity: 0.3; }
+  85%  { opacity: 0.3; }
+  100% { bottom: 110%; opacity: 0; }
+}
+
+@keyframes bubblePop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes ringPulse {
+  0%, 100% { box-shadow: 0 0 10rpx currentColor, 0 0 20rpx currentColor; }
+  50%      { box-shadow: 0 0 25rpx currentColor, 0 0 50rpx currentColor; }
+}
+
+@keyframes tabBounce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+.safe-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* swipe-delete zone */
+.delete-zone {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 120rpx;
+  background: #ff4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 0 var(--r-card) var(--r-card) 0;
+}
+
+/* Shimmer placeholder */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Star particle backdrop */
+.star-particle {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
