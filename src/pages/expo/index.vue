@@ -1,6 +1,12 @@
 <template>
   <view class="page">
     <view class="header"><text class="main-title">漫展日历</text></view>
+    <view class="city-selector">
+      <text class="city-label">城市:</text>
+      <picker :value="cityIndex" :range="cities" @change="onCityChange">
+        <text class="city-value">{{ cities[cityIndex] }} ▾</text>
+      </picker>
+    </view>
 
     <view class="month-switch">
       <text class="month-arrow" @tap="prevMonth">◀</text>
@@ -31,6 +37,7 @@
             </view>
           </view>
           <view class="expo-body"><text class="expo-name">{{ item.name }}</text><text class="expo-city">📍 {{ item.city }}</text></view>
+          <view class="expo-distance"><text class="distance-text">距你 15km</text></view>
           <view class="expo-bottom">
             <text class="expo-arrow" :class="{ 'arrow-rotated': expandedIdx === idx }">›</text>
           </view>
@@ -87,10 +94,18 @@ const mockData: ExpoItem[] = [
 
 const now = new Date()
 const currentYear = ref(now.getFullYear()); const currentMonth = ref(now.getMonth() + 1); const list = ref<ExpoItem[]>([])
+const selectedCity = ref('')
+const cities = computed(() => { const s = new Set(list.value.map(i => i.city)); return ['全部', ...s] })
+const cityIndex = computed(() => { const idx = cities.value.indexOf(selectedCity.value); return idx >= 0 ? idx : 0 })
+const onCityChange = (e: any) => { selectedCity.value = cities.value[e.detail.value] }
 const { deleteIdx, touchStart, touchEnd, confirmDelete } = useSwipeDelete()
 const expandedIdx = ref(-1)
 
-const filteredList = computed(() => list.value.filter(item => item.dateObj.year === currentYear.value && item.dateObj.month === currentMonth.value))
+const filteredList = computed(() => list.value.filter(item =>
+  item.dateObj.year === currentYear.value &&
+  item.dateObj.month === currentMonth.value &&
+  (selectedCity.value === '' || selectedCity.value === '全部' || item.city === selectedCity.value)
+))
 const prevMonth = () => { if (currentMonth.value === 1) { currentMonth.value = 12; currentYear.value-- } else { currentMonth.value-- } }
 const nextMonth = () => { if (currentMonth.value === 12) { currentMonth.value = 1; currentYear.value++ } else { currentMonth.value++ } }
 
@@ -170,4 +185,9 @@ onShow(() => loadData())
 
 .fab-btn { position: fixed; bottom: 60rpx; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea, #764ba2); padding: 24rpx 60rpx; border-radius: 50rpx; box-shadow: 0 8rpx 24rpx rgba(102,126,234,0.4); }
 .fab-text { font-size: 28rpx; color: #fff; font-weight: bold; }
+.city-selector { display: flex; align-items: center; gap: 10rpx; margin-bottom: 16rpx; padding: 0 6rpx; }
+.city-label { font-size: 24rpx; color: rgba(255,255,255,0.7); }
+.city-value { font-size: 26rpx; color: #fff; font-weight: bold; }
+.expo-distance { margin: 4rpx 0; }
+.distance-text { font-size: 20rpx; color: #4caf50; }
 </style>

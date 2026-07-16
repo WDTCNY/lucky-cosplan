@@ -75,6 +75,16 @@
           <view class="match-item"><text class="match-emoji">💬</text><text class="match-text">{{ summaryMatch }}</text></view>
         </view>
       </view>
+      <view class="cosplay-ref-section anim-fadeInUp anim-d2">
+        <text class="section-title">👥 同角色 Coser 参考</text>
+        <view v-if="!reference" class="btn-ref" @tap="fetchReference"><text>✨ 生成参考</text></view>
+        <view v-else class="ref-content">
+          <view class="ref-block"><text class="ref-block-title">常见特点</text><text v-for="t in reference.commonTraits || []" :key="t" class="ref-text">• {{ t }}</text></view>
+          <view class="ref-block"><text class="ref-block-title">普遍做法</text><text v-for="p in reference.commonPractices || []" :key="p" class="ref-text">• {{ p }}</text></view>
+          <view class="ref-block"><text class="ref-block-title">给你的建议</text><text v-for="s in reference.suggestions || []" :key="s" class="ref-text">💡 {{ s }}</text></view>
+          <view class="btn-ref" style="margin-top:12rpx" @tap="fetchReference"><text>🔄 刷新</text></view>
+        </view>
+      </view>
 
       <view class="bottom-actions anim-fadeInUp anim-d2">
         <view class="btn-fav" @tap="handleFavorite">
@@ -93,6 +103,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { isFavorite, toggleFavorite, getCachedRoleDetail, setCachedRoleDetail } from '../../utils/storage'
 import { getRoleDetail } from '../../utils/api'
+import { getCoserReference } from '../../utils/api'
 
 interface RoleItem { name: string; anime: string; reason: string; difficulty: string; matchScore: number }
 interface InputData { height: number; weight: number; temperament: string }
@@ -191,6 +202,11 @@ const handleRefresh = () => {
   fetchRoleDetail(true)
   uni.showToast({ title: '已刷新角色信息', icon: 'none' })
 }
+const reference = ref<any>(null)
+const fetchReference = async () => {
+  try { const res = await getCoserReference(role.value.name); reference.value = res }
+  catch { uni.showToast({ title: '获取失败', icon: 'none' }) }
+}
 
 onMounted(() => {
   try {
@@ -275,4 +291,12 @@ onMounted(() => {
 .btn-project { flex: 1; height: 88rpx; border-radius: 50rpx; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #b44dff, #7c3aed); box-shadow: 0 0 24rpx rgba(180,77,255,0.35); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .btn-project:active { transform: scale(0.96); }
 .btn-project-text { font-size: 28rpx; color: #fff; font-weight: bold; }
+.cosplay-ref-section { margin-bottom: 20rpx; width: 100%; }
+.cosplay-ref-section .section-title { font-size: 28rpx; color: rgba(255,255,255,0.8); text-align: center; display: block; margin-bottom: 16rpx; font-weight: bold; }
+.btn-ref { padding: 16rpx 0; text-align: center; font-size: 24rpx; color: #b44dff; border: 1px solid rgba(180,77,255,0.25); border-radius: 20rpx; }
+.ref-content { }
+.ref-block { margin-bottom: 12rpx; }
+.ref-block-title { font-size: 24rpx; color: rgba(255,255,255,0.7); font-weight: bold; display: block; margin-bottom: 6rpx; }
+.ref-text { font-size: 22rpx; color: rgba(255,255,255,0.6); display: block; line-height: 1.6; padding-left: 10rpx; }
+.ref-text.highlight { color: #b44dff; }
 </style>

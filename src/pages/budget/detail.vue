@@ -36,6 +36,7 @@
             <view class="expense-left">
               <text class="expense-arrow" @tap.stop="toggleChildren(item.id)">{{ item.children && item.children.length ? (childFold[item.id] ? '▶' : '▼') : '' }}</text>
               <text class="expense-name">{{ item.name }}</text>
+              <text v-if="item.isFixed" class="expense-lock">🔒</text>
             </view>
             <view v-if="editingAmount === item.id" class="amount-edit">
               <input class="amount-input" type="digit" v-model="editAmountVal" @blur="confirmAmount(item)" @confirm="confirmAmount(item)" />
@@ -94,12 +95,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 interface ChildItem { id: string; name: string; amount: number }
 interface BudgetItem { id: string; name: string; amount: number; category: string; isFixed: boolean; children: ChildItem[] }
 
-const categories = ['服装', '假发', '道具', '化妆', '摄影', '交通', '其他']
+const categories = ['服装', '👞 鞋', '假发', '道具', '化妆', '摄影', '交通', '其他']
 const catColorMap: Record<string, string> = {
-  '服装': '#7B9EBD', '假发': '#9B8EC4', '道具': '#C4A87C', '化妆': '#C49B9B', '摄影': '#8CAF9E', '交通': '#8E9E9E', '其他': '#8E9E9E',
+  '服装': '#7B9EBD', '👞 鞋': '#9B8EC4', '假发': '#9B8EC4', '道具': '#C4A87C', '化妆': '#C49B9B', '摄影': '#8CAF9E', '交通': '#8E9E9E', '其他': '#8E9E9E',
 }
 const catColor = (c: string) => catColorMap[c] || '#8E9E9E'
-const catIcon = (c: string) => { const m: Record<string,string> = { '服装':'👘', '假发':'💇', '道具':'🔧', '化妆':'💄', '摄影':'📸', '交通':'🚗', '其他':'📦' }; return m[c] || '📦' }
+const catIcon = (c: string) => { const m: Record<string,string> = { '服装':'👘', '👞 鞋':'👞', '假发':'💇', '道具':'🔧', '化妆':'💄', '摄影':'📸', '交通':'🚗', '其他':'📦' }; return m[c] || '📦' }
 
 const roleName = ref('')
 const totalBudget = ref(2000)
@@ -120,8 +121,8 @@ let pid = ''
 
 // Fixed items
 const FIXED: BudgetItem[] = [
-  { id: '__fixed_shoot', name: '📸 拍摄', amount: 0, category: '摄影', isFixed: true, children: [] },
   { id: '__fixed_venue', name: '🏠 场地', amount: 0, category: '交通', isFixed: true, children: [] },
+  { id: '__fixed_shoot', name: '📸 拍摄', amount: 0, category: '摄影', isFixed: true, children: [] },
 ]
 
 // Merge fixed items on load
@@ -293,6 +294,10 @@ onMounted(() => {
   }
   // Remove "代购买" preset if exists
   items.value = items.value.filter(i => i.name !== '代购买')
+  // Ensure default shoe item
+  if (!items.value.find(i => i.category === '👞 鞋')) {
+    items.value.push({ id: 'default_shoes', name: '鞋子', amount: 0, category: '👞 鞋', isFixed: false, children: [] })
+  }
   ensureFixed()
   items.value.forEach(i => { if (i.children && i.children.length > 0) recalcParent(i) })
 })
@@ -329,6 +334,7 @@ onMounted(() => {
 .expense-left { flex: 1; display: flex; align-items: center; }
 .expense-arrow { font-size: 18rpx; color: #ccc; margin-right: 6rpx; width: 24rpx; text-align: center; }
 .expense-name { font-size: 24rpx; color: #555; }
+.expense-lock { font-size: 18rpx; margin-left: 6rpx; }
 .expense-amount { font-size: 24rpx; font-weight: bold; color: #ff6b6b; margin: 0 10rpx; }
 .amount-edit { margin: 0 4rpx; }
 .amount-input { width: 100rpx; height: 46rpx; background: #f5f5f5; border-radius: 6rpx; text-align: center; font-size: 22rpx; color: #ff6b6b; }

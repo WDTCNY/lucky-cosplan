@@ -4,6 +4,19 @@
     <view class="star-particles">
       <view v-for="i in 8" :key="i" class="star-dot" :class="'s' + i"></view>
     </view>
+    <!-- Search bar -->
+    <view class="search-bar glass">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" v-model="searchQuery" placeholder="搜索角色名 / 漫展 / 物料..." @input="onSearchInput" @confirm="doSearch" />
+      <text v-if="searchQuery" class="search-clear" @tap="searchQuery = ''; suggestions = []; showHistory = false">✕</text>
+    </view>
+    <view v-if="showSuggestions && suggestions.length > 0" class="suggestions-dropdown glass">
+      <view v-for="s in suggestions" :key="s" class="suggestion-item" @tap="selectSuggestion(s)"><text>{{ s }}</text></view>
+    </view>
+    <view v-if="showHistory && searchHistory.length > 0 && !searchQuery" class="suggestions-dropdown glass">
+      <view class="suggestions-header"><text style="color:#999;font-size:20rpx">最近搜索</text><text style="color:#667eea;font-size:20rpx" @tap="clearHistory">清空</text></view>
+      <view v-for="(h, i) in searchHistory" :key="i" class="suggestion-item" @tap="selectSuggestion(h)"><text>{{ h }}</text></view>
+    </view>
 
     <!-- Title -->
     <view class="header anim-fadeInUp">
@@ -90,6 +103,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { getRoleRecommend } from '../../utils/api'
+import { getSearchSuggestions } from '../../utils/api'
 import { saveHistory } from '../../utils/storage'
 
 const photoUrl = ref('')
@@ -136,8 +150,30 @@ const handleSkipAndViewMock = (): void => {
 
 const handleMatch = async (): Promise<void> => { if (!canSubmit.value || loading.value) return; loading.value = true; try { await submitHandler() } catch { uni.showModal({ title: '提示', content: 'AI推荐失败，请重试', showCancel: false }) } finally { loading.value = false } }
 
+// Search
+const searchQuery = ref('')
+const suggestions = ref<string[]>([])
+const showSuggestions = ref(false)
+const showHistory = ref(false)
+const searchHistory = ref<string[]>([])
+const loadSearchHistory = () => { try { const d = uni.getStorageSync('cosplan_search_history'); if (Array.isArray(d)) searchHistory.value = d } catch {} }
+const saveSearchHistory = (q: string) => { const list = [q, ...searchHistory.value.filter(h => h !== q)].slice(0, 10); uni.setStorageSync('cosplan_search_history', list); searchHistory.value = list }
+const clearHistory = () => { uni.setStorageSync('cosplan_search_history', []); searchHistory.value = [] }
+const onSearchInput = () => {
+  if (!searchQuery.value.trim()) { suggestions.value = []; showSuggestions.value = false; showHistory.value = true; return }
+  suggestions.value = getSearchSuggestions(searchQuery.value)
+  showSuggestions.value = suggestions.value.length > 0; showHistory.value = false
+}
+const selectSuggestion = (s: string) => { searchQuery.value = s; doSearch() }
+const doSearch = () => {
+  const q = searchQuery.value.trim(); if (!q) return
+  saveSearchHistory(q); suggestions.value = []; showSuggestions.value = false
+  uni.navigateTo({ url: '/pages/result/index?search=' + encodeURIComponent(q) })
+}
+
 onMounted(() => {
   const user = uni.getStorageSync('cosplan_user')
+  loadSearchHistory()
   if (!user?.id) {
     uni.reLaunch({ url: '/pages/login/index' })
   }
@@ -494,4 +530,11 @@ onMounted(() => {
   position: relative;
   z-index: 2;
 }
+.search-bar { display: flex; align-items: center; gap: 10rpx; padding: 0 20rpx; height: 72rpx; margin-bottom: 16rpx; background: rgba(255,255,255,0.06); border-radius: 40rpx; border: 1px solid rgba(255,255,255,0.08); }
+.search-icon { font-size: 28rpx; margin-right: 6rpx; }
+.search-input { flex: 1; height: 56rpx; font-size: 24rpx; color: rgba(255,255,255,0.8); }
+.search-clear { font-size: 24rpx; color: rgba(255,255,255,0.3); padding: 4rpx; }
+.suggestions-dropdown { background: rgba(255,255,255,0.06); border-radius: 16rpx; padding: 10rpx 20rpx; margin-bottom: 12rpx; }
+.suggestions-header { display: flex; justify-content: space-between; padding: 6rpx 0; }
+.suggestion-item { padding: 12rpx 0; font-size: 24rpx; color: rgba(255,255,255,0.7); border-bottom: 1rpx solid rgba(255,255,255,0.05); }
 </style>

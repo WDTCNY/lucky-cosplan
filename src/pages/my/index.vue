@@ -13,6 +13,10 @@
       <view class="menu-item" @tap="goFavorites"><text class="menu-icon">❤️</text><text class="menu-label">我的收藏</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
       <view class="menu-divider"></view>
       <view class="menu-item" @tap="goProject"><text class="menu-icon">📋</text><text class="menu-label">我的企划</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
+      <view class="menu-item" @tap="goStorage"><text class="menu-icon">🗄️</text><text class="menu-label">我的仓库</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" @tap="goCard"><text class="menu-icon">🎴</text><text class="menu-label">我的名片</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
+      <view class="menu-divider"></view>
       <view class="menu-item" @tap="goShoot"><text class="menu-icon">📸</text><text class="menu-label">拍摄计划</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
       <view class="menu-divider"></view>
       <view class="menu-item" @tap="goBudget"><text class="menu-icon">💰</text><text class="menu-label">花费预算</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
@@ -20,6 +24,8 @@
       <view class="menu-item" @tap="goExpo"><text class="menu-icon">📅</text><text class="menu-label">漫展日历</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
       <view class="menu-divider"></view>
       <view class="menu-item" @tap="goRooms"><text class="menu-icon">🏠</text><text class="menu-label">我的房间</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
+      <view class="menu-divider"></view>
+      <view class="menu-item" @tap="goIdea"><text class="menu-icon">💡</text><text class="menu-label">灵感便签</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
       <view class="menu-divider"></view>
       <view class="menu-item" @tap="handleTap('settings')"><text class="menu-icon">⚙️</text><text class="menu-label">设置</text><view class="menu-right"><text class="menu-arrow">›</text></view></view>
       <view class="menu-divider"></view>
@@ -67,6 +73,9 @@ const handleLogout = () => {
 const goHistory = () => uni.navigateTo({ url: '/pages/history/index' })
 const goFavorites = () => uni.navigateTo({ url: '/pages/favorites/index' })
 const goProject = () => uni.navigateTo({ url: '/pages/project/index' })
+const goStorage = () => uni.navigateTo({ url: '/pages/storage/index' })
+const goCard = () => uni.navigateTo({ url: '/pages/card/index' })
+const goIdea = () => uni.navigateTo({ url: '/pages/idea/index' })
 const goShoot = () => uni.navigateTo({ url: '/pages/shoot/index' })
 const goBudget = () => uni.navigateTo({ url: '/pages/budget/index' })
 const goExpo = () => uni.navigateTo({ url: '/pages/expo/index' })
