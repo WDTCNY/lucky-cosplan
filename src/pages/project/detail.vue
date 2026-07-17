@@ -222,11 +222,12 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { getTotalSpent } from '../../utils/budget'
 import { getSmartPlan, getLocationRecommend, getPhotoRecommendation } from '../../utils/api'
+import { getDefaultVersion } from '../../utils/storage'
 
 interface MaterialItem { name: string; done: boolean; days: string; quantity: string; type: 'buy' | 'make'; process: string; note: string; link?: string; price?: string; purchaseStatus?: string; materials?: string; estimatedHours?: string }
 interface MaterialCategory { category: string; items: MaterialItem[] }
 interface Sizes { height: string; weight: string; bust: string; waist: string; hip: string; shoe: string }
-interface Project { id: string; roleName: string; version: string; refImages: string[]; sizes: Sizes; materials: MaterialCategory[]; targetDate: string; remindDays: number }
+interface Project { id: string; roleName: string; version: string; totalBudget?: number; refImages: string[]; sizes: Sizes; materials: MaterialCategory[]; targetDate: string; remindDays: number; createdAt?: number }
 
 interface EditingMaterial {
   isNew: boolean
@@ -319,7 +320,7 @@ function confirmBatchDeleteMat() {
 // ----
 
 const project = reactive<Project>({
-  id: '', roleName: '新企划', version: '企划', refImages: [],
+  id: '', roleName: '新企划', version: '企划', totalBudget: 0, refImages: [],
   sizes: { height: '', weight: '', bust: '', waist: '', hip: '', shoe: '' },
   materials: [
     { category: '服装类', items: [{ name: '上衣', done: false, days: '3', quantity: '1', type: 'buy', process: '', note: '' }, { name: '下装', done: false, days: '3', quantity: '1', type: 'buy', process: '', note: '' }] },
@@ -480,8 +481,14 @@ let projectId = ''
 const saveToStorage = () => {
   const all = uni.getStorageSync('cosplan_projects') || []
   const i = all.findIndex((p: Project) => p.id === projectId)
-  if (i >= 0) all[i] = { ...project, id: projectId }
-  else all.unshift({ ...project, id: projectId })
+  if (i >= 0) {
+    // Preserve createdAt from existing data if project doesn't have it
+    const existingCreatedAt = all[i].createdAt
+    all[i] = { ...project, id: projectId }
+    if (!all[i].createdAt && existingCreatedAt) all[i].createdAt = existingCreatedAt
+  } else {
+    all.unshift({ ...project, id: projectId, createdAt: project.createdAt || Date.now() })
+  }
   uni.setStorageSync('cosplan_projects', all)
 }
 
@@ -548,7 +555,7 @@ onMounted(() => {
   if (options.new === '1' && options.roleName) {
     isNewMode.value = true
     project.roleName = decodeURIComponent(options.roleName)
-    project.version = decodeURIComponent(options.version || '企划')
+    project.version = decodeURIComponent(options.version || getDefaultVersion(project.roleName))
     project.id = ''
   } else {
     projectId = options.id || Date.now().toString()

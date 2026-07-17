@@ -14,23 +14,12 @@
       <text class="subtitle">你的Cos企划助手</text>
 
       <view class="input-wrap">
-        <input class="form-input" v-model="cn" placeholder="给自己取个CN吧" placeholder-style="color: rgba(255,255,255,0.25)" maxlength="20" />
+        <input class="form-input" type="number" v-model="phone" placeholder="输入手机号" placeholder-style="color: rgba(255,255,255,0.25)" maxlength="11" />
       </view>
 
-      <view class="input-wrap pwd-wrap">
-        <input class="form-input" :type="showPwd ? 'text' : 'password'" v-model="pwd" placeholder="设置登录密码" placeholder-style="color: rgba(255,255,255,0.25)" maxlength="20" />
-        <text class="eye-icon" @tap="showPwd = !showPwd">{{ showPwd ? '👁' : '👁‍🗨' }}</text>
+      <view class="btn-enter" @tap="handleLogin">
+        <text class="btn-enter-text">一键登录</text>
       </view>
-
-      <view class="btn-enter" @tap="handleSubmit">
-        <text class="btn-enter-text">{{ isLoginMode ? '登录' : '注册 / 登录' }}</text>
-      </view>
-
-      <text class="tip-text">登录后数据云端同步，永不丢失</text>
-
-      <text class="mode-switch" @tap="isLoginMode = !isLoginMode">
-        {{ isLoginMode ? '没有账号？注册新号' : '已有账号？直接登录' }}
-      </text>
 
       <text class="skip-text" @tap="handleSkip">暂不登录，先逛逛</text>
     </view>
@@ -40,24 +29,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const cn = ref('')
-const pwd = ref('')
-const showPwd = ref(false)
-const isLoginMode = ref(false)
+const phone = ref('')
 
-const createUser = (name: string, password: string) => {
+const createUser = (phoneNumber: string) => {
+  const suffix = phoneNumber.slice(-4)
   return {
     id: 'u_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
-    nickName: name || '新Coser',
-    password, // plaintext for now
+    nickName: '新Coser' + suffix,
+    phone: phoneNumber,
     createdAt: Date.now(),
   }
 }
 
-const getAccountByCN = (cnName: string) => {
+const getAccountByPhone = (phoneNumber: string) => {
   try {
     const accounts: any[] = uni.getStorageSync('cosplan_accounts') || []
-    return accounts.find((a: any) => a.nickName === cnName) || null
+    return accounts.find((a: any) => a.phone === phoneNumber) || null
   } catch { return null }
 }
 
@@ -72,47 +59,37 @@ const saveAccount = (user: any) => {
 }
 
 const doLogin = (user: any) => {
-  const session = { id: user.id, nickName: user.nickName, createdAt: user.createdAt }
+  const session = { id: user.id, nickName: user.nickName, phone: user.phone, createdAt: user.createdAt }
   uni.setStorageSync('cosplan_user', session)
   uni.reLaunch({ url: '/pages/index/index' })
 }
 
-const handleSubmit = () => {
-  const name = cn.value.trim()
-  const pass = pwd.value
+const handleLogin = () => {
+  const num = phone.value.trim()
 
-  if (!name) { uni.showToast({ title: '请输入CN', icon: 'none' }); return }
-  if (!pass || pass.length < 6) { uni.showToast({ title: '密码至少6位', icon: 'none' }); return }
+  if (!num || num.length !== 11 || !/^1\d{10}$/.test(num)) {
+    uni.showToast({ title: '请输入正确的手机号', icon: 'none' })
+    return
+  }
 
-  const existing = getAccountByCN(name)
+  const existing = getAccountByPhone(num)
 
-  if (isLoginMode.value) {
-    // Login mode
-    if (!existing) {
-      uni.showToast({ title: '该CN尚未注册', icon: 'none' })
-      return
-    }
-    if (existing.password !== pass) {
-      uni.showToast({ title: '密码错误', icon: 'none' })
-      return
-    }
+  if (existing) {
     doLogin(existing)
   } else {
-    // Register mode
-    if (existing) {
-      uni.showToast({ title: '该CN已存在，请直接登录或换个CN', icon: 'none' })
-      isLoginMode.value = true
-      return
-    }
-    const user = createUser(name, pass)
+    const user = createUser(num)
     saveAccount(user)
     doLogin(user)
   }
 }
 
 const handleSkip = () => {
-  const user = createUser('', '')
-  user.nickName = '游客' + user.id.substring(2, 6)
+  const user = {
+    id: 'u_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6),
+    nickName: '游客' + Date.now().toString(36).substring(2, 6),
+    phone: '',
+    createdAt: Date.now(),
+  }
   saveAccount(user)
   doLogin(user)
 }
@@ -241,10 +218,6 @@ const handleSkip = () => {
   margin-bottom: 24rpx;
 }
 
-.pwd-wrap {
-  position: relative;
-}
-
 .form-input {
   width: 100%;
   height: 88rpx;
@@ -256,15 +229,6 @@ const handleSkip = () => {
   color: rgba(255,255,255,0.8);
   text-align: center;
   box-sizing: border-box;
-}
-
-.eye-icon {
-  position: absolute;
-  right: 30rpx;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 28rpx;
-  z-index: 1;
 }
 
 .btn-enter {
@@ -285,18 +249,6 @@ const handleSkip = () => {
   font-weight: bold;
   color: #fff;
   letter-spacing: 4rpx;
-}
-
-.tip-text {
-  font-size: 20rpx;
-  color: rgba(255,255,255,0.25);
-  margin-bottom: 20rpx;
-}
-
-.mode-switch {
-  font-size: 24rpx;
-  color: rgba(255,255,255,0.35);
-  margin-bottom: 24rpx;
 }
 
 .skip-text {

@@ -12,7 +12,7 @@ interface RecommendResult {
 
 interface HistoryItem {
   data: { roles: RoleItem[] }
-  input: { height: number; weight: number; temperament: string }
+  input: { height: number; weight: number; temperament?: string; temperaments?: string[] | string }
   timestamp: number
 }
 
@@ -146,4 +146,21 @@ export function setCachedRoleDetail(roleName: string, data: any): void {
     timestamp: Date.now(),
   }
   uni.setStorageSync(roleDetailKey(roleName), cached)
+}
+
+// ---------- 版本名默认规则 ----------
+/**
+ * 根据角色名生成默认版本名
+ * - 没有同角色企划 → 返回角色名
+ * - 已有 N 个同角色企划 → 返回 角色名-(N+1)
+ * - 用户手动填了版本名 → 直接用填的（由调用方判断）
+ */
+export function getDefaultVersion(roleName: string): string {
+  try {
+    const all: any[] = uni.getStorageSync('cosplan_projects') || []
+    const sameRoleCount = all.filter((p: any) => p.roleName === roleName).length
+    return sameRoleCount === 0 ? roleName : `${roleName}-${sameRoleCount + 1}`
+  } catch {
+    return roleName
+  }
 }

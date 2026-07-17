@@ -1,11 +1,16 @@
 <template>
   <view class="page">
-    <view class="header"><text class="main-title">花费预算</text></view>
+    <!-- Search bar -->
+    <view class="search-bar">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" v-model="searchQuery" placeholder="搜索预算" placeholder-style="color: rgba(255,255,255,0.3)" @input="onSearchInput" />
+      <text v-if="searchQuery" class="search-clear" @tap="searchQuery = ''">✕</text>
+    </view>
 
-    <view v-if="list.length === 0" class="empty-state"><text class="empty-icon">💰</text><text class="empty-text">还没有预算</text></view>
+    <view v-if="filteredList.length === 0" class="empty-state"><text class="empty-icon">💰</text><text class="empty-text">还没有预算</text></view>
 
     <view v-else class="list">
-      <view v-for="(item, idx) in list" :key="item.projectId" class="card swipe-card" @touchstart="touchStart($event, idx)" @touchend="touchEnd" @tap="goDetail(item.projectId)">
+      <view v-for="(item, idx) in filteredList" :key="item.projectId" class="card swipe-card" @touchstart="touchStart($event, list.indexOf(item))" @touchend="touchEnd" @tap="goDetail(item.projectId)">
         <view class="card-top"><text class="budget-name">{{ item.roleName }}</text><text class="budget-status" :class="'badge-' + budgetStatus(item)">{{ budgetLabel(item) }}</text></view>
         <view class="budget-row"><text class="budget-label">总预算</text><text class="budget-value">¥{{ item.totalBudget }}</text></view>
         <view class="budget-row"><text class="budget-label">已花费</text><text class="budget-value spent">¥{{ getSpent(item.projectId) }}</text></view>
@@ -19,13 +24,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getAllBudgets, getTotalSpent } from '../../utils/budget'
 import { useSwipeDelete } from '../../composables/useSwipeDelete'
 
 interface BudgetItem { projectId: string; roleName: string; totalBudget: number }
 const list = ref<BudgetItem[]>([])
 const { deleteIdx, touchStart, touchEnd, confirmDelete } = useSwipeDelete()
+
+// Search
+const searchQuery = ref('')
+const filteredList = computed(() => {
+  if (!searchQuery.value.trim()) return list.value
+  const q = searchQuery.value.trim().toLowerCase()
+  return list.value.filter(item => item.roleName.toLowerCase().includes(q))
+})
+function onSearchInput() {
+  // reactive filtering via computed
+}
 
 const getSpent = (pid: string) => getTotalSpent(pid).toFixed(0)
 const budgetPercent = (item: BudgetItem) => Math.min(100, Math.round((getTotalSpent(item.projectId) / item.totalBudget) * 100))
@@ -61,6 +77,23 @@ onMounted(() => { try { const d = uni.getStorageSync('cosplan_budget_list'); if 
 .bar-ok { background: #4caf50; }
 .bar-warn { background: #ff9800; }
 .bar-over { background: #f44336; }
+/* ---- Search Bar ---- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  width: 100%;
+  padding: 0 20rpx;
+  height: 72rpx;
+  margin-bottom: 20rpx;
+  background: rgba(255,255,255,0.08);
+  border-radius: 40rpx;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.search-icon { font-size: 28rpx; }
+.search-input { flex: 1; height: 56rpx; font-size: 24rpx; color: rgba(255,255,255,0.9); }
+.search-clear { font-size: 24rpx; color: rgba(255,255,255,0.3); padding: 4rpx; }
+
 .fab-btn { position: fixed; bottom: 60rpx; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #667eea, #764ba2); padding: 24rpx 60rpx; border-radius: 50rpx; box-shadow: 0 8rpx 24rpx rgba(102,126,234,0.4); }
 .fab-text { font-size: 28rpx; color: #fff; font-weight: bold; }
 </style>

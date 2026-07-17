@@ -1,19 +1,32 @@
 interface RoleRecommendParams {
   height: number
   weight: number
-  temperament: string
+  gender: string
+  temperaments: string
   photoBase64?: string
+  bust?: string
+  waist?: string
+  hip?: string
+  shoeSize?: string
+  budget?: string
+  experience?: string
+  preferGender?: string
+  style?: string
+  workType?: string
+  otherPreference?: string
 }
 
 // ======== Mock / AI 功能模块 ========
 export const USE_MOCK = true
+
+const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY || ''
 
 function deepseekCall(messages: any[], maxTokens = 1000): Promise<string> {
   return new Promise((resolve, reject) => {
     uni.request({
       url: 'https://api.deepseek.com/v1/chat/completions',
       method: 'POST',
-      header: { 'Content-Type': 'application/json', Authorization: 'Bearer sk-901d6ff43d374c1aabbbf75c12e33425' },
+      header: { 'Content-Type': 'application/json', Authorization: `Bearer ${DEEPSEEK_API_KEY}` },
       data: { model: 'deepseek-chat', messages, temperature: 0.7, max_tokens: maxTokens },
       timeout: 30000,
       success: (res) => { try { const c = (res.data as any).choices[0].message.content; const j = c.match(/\{[\s\S]*\}/); if (j) resolve(j[0]); else reject(new Error('no JSON')) } catch (e) { reject(e) } },
@@ -132,7 +145,7 @@ export function getSearchSuggestions(query: string): string[] {
   return pool.filter(s => s.toLowerCase().includes(q)).slice(0, 5)
 }
 
-export type { RoleRecommendParams, RoleItem, RoleRecommendResult, RoleDetailInput, RoleDetailResult }
+export type { RoleRecommendParams, RoleItem, RoleRecommendResult }
 interface RoleItem {
   name: string
   anime: string
@@ -148,9 +161,16 @@ interface RoleRecommendResult {
 export async function getRoleRecommend(
   params: RoleRecommendParams
 ): Promise<RoleRecommendResult> {
-  const { height, weight, temperament, photoBase64 } = params
+  const { height, weight, gender, temperaments, photoBase64, budget, experience, preferGender, style, workType, otherPreference } = params
 
-  const userMessage = `请根据以下信息推荐角色：身高${height}cm，体重${weight}kg，气质${temperament}`
+  const parts = [`身高${height}cm，体重${weight}kg，性别${gender || '不限'}，气质${temperaments || '不限'}`]
+  if (budget) parts.push(`预算: ${budget}`)
+  if (experience) parts.push(`Cos经验: ${experience}`)
+  if (preferGender) parts.push(`偏好性别: ${preferGender}`)
+  if (style) parts.push(`风格偏好: ${style}`)
+  if (workType) parts.push(`作品类型: ${workType}`)
+  if (otherPreference) parts.push(`其他偏好: ${otherPreference}`)
+  const userMessage = `请根据以下信息推荐角色：${parts.join('，')}`
 
   return new Promise((resolve, reject) => {
     uni.request({
@@ -158,7 +178,7 @@ export async function getRoleRecommend(
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer sk-901d6ff43d374c1aabbbf75c12e33425',
+        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       },
       data: {
         model: 'deepseek-chat',
@@ -235,7 +255,7 @@ export async function getRoleDetail(
       method: 'POST',
       header: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer sk-901d6ff43d374c1aabbbf75c12e33425',
+        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       },
       data: {
         model: 'deepseek-chat',

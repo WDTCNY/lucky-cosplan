@@ -168,23 +168,49 @@
         "navigationBarBackgroundColor": "#1B1725",
         "navigationBarTextStyle": "white"
       }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置",
+        "navigationBarBackgroundColor": "#667eea",
+        "navigationBarTextStyle": "white"
+      }
     }
   ],
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#764ba2",
-    "backgroundColor": "#ffffff",
+    "selectedColor": "#b44dff",
+    "backgroundColor": "#1B1725",
     "borderStyle": "black",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
+        "text": "🏠 首页",
+        "iconPath": "",
+        "selectedIconPath": ""
+      },
+      {
+        "pagePath": "pages/project/index",
+        "text": "📋 企划",
+        "iconPath": "",
+        "selectedIconPath": ""
+      },
+      {
+        "pagePath": "pages/budget/index",
+        "text": "💰 预算",
+        "iconPath": "",
+        "selectedIconPath": ""
+      },
+      {
+        "pagePath": "pages/expo/index",
+        "text": "📅 漫展",
         "iconPath": "",
         "selectedIconPath": ""
       },
       {
         "pagePath": "pages/my/index",
-        "text": "我的",
+        "text": "👤 我的",
         "iconPath": "",
         "selectedIconPath": ""
       }

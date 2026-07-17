@@ -88,8 +88,11 @@
       </view>
 
       <view class="bottom-actions anim-fadeInUp anim-d4">
-        <view class="btn btn-primary" @tap="goBack">
-          <text class="btn-text-primary">重新匹配</text>
+        <view class="btn btn-primary" :class="{ 'btn--loading': rematchLoading }" @tap="handleRematch">
+          <text class="btn-text-primary">{{ rematchLoading ? 'AI正在重新匹配...' : '重新匹配' }}</text>
+        </view>
+        <view class="edit-link" @tap="goHome">
+          <text class="edit-link-text">修改条件</text>
         </view>
       </view>
     </template>
@@ -98,11 +101,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { getRoleRecommend } from '../../utils/api'
+import { saveHistory } from '../../utils/storage'
 
 interface RoleItem { name: string; anime: string; reason: string; difficulty: string; matchScore: number }
 const roles = ref<RoleItem[]>([])
 const hasResult = ref(false)
 const temperamentColor = ref('cute')
+const rematchLoading = ref(false)
 
 const matchTime = computed(() => {
   const now = new Date(); const pad = (n: number) => String(n).padStart(2, '0')
@@ -121,6 +127,47 @@ const matchGradient = (score: number) => {
 const goHome = () => uni.navigateBack()
 const goBack = () => uni.navigateBack()
 const goDetail = (role?: RoleItem) => { if (!role) return; uni.setStorageSync('cosplan_selected_role', role); uni.navigateTo({ url: '/pages/detail/index' }) }
+
+// Rematch: re-call API with same params
+const handleRematch = async () => {
+  if (rematchLoading.value) return
+  rematchLoading.value = true
+  try {
+    const result = uni.getStorageSync('cosplan_result')
+    const oldInput = result?.input
+    if (!oldInput) {
+      uni.showToast({ title: '无匹配记录', icon: 'none' })
+      return
+    }
+    const params: any = {
+      height: oldInput.height,
+      weight: oldInput.weight,
+      gender: oldInput.gender || '不限',
+      temperaments: oldInput.temperaments || '不限',
+    }
+    if (oldInput.budget) params.budget = oldInput.budget
+    if (oldInput.experience) params.experience = oldInput.experience
+    if (oldInput.preferGender) params.preferGender = oldInput.preferGender
+    if (oldInput.style) params.style = oldInput.style
+    if (oldInput.workType) params.workType = oldInput.workType
+    if (oldInput.otherPreference) params.otherPreference = oldInput.otherPreference
+    const newResult = await getRoleRecommend(params)
+    // Save old result to history
+    if (result && result.data) {
+      saveHistory(result)
+    }
+    // Update storage with new result
+    const full = { data: newResult, input: oldInput, timestamp: Date.now() }
+    uni.setStorageSync('cosplan_result', full)
+    // Refresh UI
+    roles.value = newResult.roles.slice(0, 3)
+    hasResult.value = true
+  } catch {
+    uni.showToast({ title: '重新匹配失败，请重试', icon: 'none' })
+  } finally {
+    rematchLoading.value = false
+  }
+}
 
 onMounted(() => {
   try {
@@ -395,4 +442,19 @@ onMounted(() => {
   box-shadow: 0 0 24rpx rgba(180,77,255,0.35);
 }
 .btn-text-primary { font-size: 28rpx; color: #fff; font-weight: bold; }
+.btn--loading { opacity: 0.7; pointer-events: none; }
+
+/* ---- Edit link ---- */
+.edit-link {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10rpx;
+}
+.edit-link-text {
+  font-size: 22rpx;
+  color: rgba(180,77,255,0.6);
+  text-decoration: underline;
+}
 </style>
